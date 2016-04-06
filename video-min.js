@@ -11,13 +11,6 @@ var videoMin = function() {
   var container;
   var ratio;
 
-  // function init(videoRef, containerRef) {
-  //   video = document.querySelector(videoRef);
-  //   container = document.querySelector(containerRef);
-  //   createStyles(videoRef);
-  //   onLoad(videoRef);
-  // }
-
   this.init = function init(data) {
     video = document.querySelector(data.videoRef);
     container = document.querySelector(data.containerRef);
@@ -35,6 +28,7 @@ var videoMin = function() {
     videoMinCSS.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
     videoMinCSS.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
     videoMinCSS.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
+    // Testing alignment properties
     if (alignment) {
       if (alignment.y && alignment.x) {
         videoMinCSS.sheet.insertRule(videoRef + ' { transform: translate(-50%, -50%); top: 50%; left: 50%; }', 0);
@@ -50,7 +44,6 @@ var videoMin = function() {
   }
 
   function onLoad(videoRef) {
-    console.log(videoRef);
     document.querySelector(videoRef).addEventListener( "loadedmetadata", function (e) {
       ratio = getRatio();
       videoSize();

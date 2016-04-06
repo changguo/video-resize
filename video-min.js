@@ -1,5 +1,5 @@
 // video-min
-// Scales videos to fit frame, basic video controls
+// Scales html5 videos to fit frame, basic video controls
 // Developed by Robert Janes
 // robertjanes.com.au
 
@@ -10,35 +10,65 @@ var videoMin = function() {
   var video;
   var container;
   var ratio;
+  var videoCss;
 
-  this.init = function init(data) {
-    video = document.querySelector(data.videoRef);
-    container = document.querySelector(data.containerRef);
-    createStyles(data.videoRef, data.scale, data.alignment);
-    onLoad(data.videoRef);
+  function Video() {
+
   }
 
-  function createStyles(videoRef, scale, alignment) { // Needs to be more modular
-    var videoMinCSS = document.createElement("style");
+  this.init = function init(data) {
+    //video = document.querySelector(data.videoRef);
+    video = new Video();
+    video.object = document.querySelector(data.videoRef);
+    toggleVideoDisplay();
+    container = document.querySelector(data.containerRef);
+    getStyles(data.videoRef, data.scale, data.alignment);
+    onLoad(data.videoRef  );
+  }
+
+  function toggleVideoDisplay() { // Prevents flash-of-unstyled-video
+    console.log(video.object);
+    video.object.style.opacity !== '0'
+      ? video.object.style.opacity = '0'
+      : video.object.style.opacity = '1';
+  }
+
+  function getStyles(videoRef, scale, alignment) { // Needs to be more modular
+    creatCssSheet();
+    createScaleStyle(videoCSS, videoRef, scale);
+    createAlignStyle(videoCSS, videoRef, alignment);
+  }
+
+  function creatCssSheet() {
+    videoCSS = document.createElement("style");
+    document.head.appendChild(videoCSS);
+  }
+
+  function createScaleStyle(videoCSS, videoRef, scale) {
     !scale
       ? scale = 100
       : scale = scale * 100;
-    document.head.appendChild(videoMinCSS);
-    videoMinCSS.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
-    videoMinCSS.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
-    videoMinCSS.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
-    videoMinCSS.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
-    // Testing alignment properties
-    if (alignment) {
+    video.object.style.position = 'absolute';
+    videoCSS.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
+    videoCSS.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
+    videoCSS.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
+    videoCSS.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
+  }
+
+  function createAlignStyle(videoCSS, videoRef, alignment) {
+    if (!alignment) alignment = {x: 0.5, y: 0.5};
+    if (alignment.x > 1 || alignment.x < 0) {
+      alignment.x = 1;
+    }
+    if (alignment.y > 1 || alignment.y < 0) {
+      alignment.y = 1;
+    } else if (alignment) {
       if (alignment.y && alignment.x) {
-        videoMinCSS.sheet.insertRule(videoRef + ' { transform: translate(-50%, -50%); top: 50%; left: 50%; }', 0);
+        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translate(-' + alignment.x * 100 + '%, -' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; left: ' + alignment.x * 100 + '%; }', 0);
       } else if (alignment.x) {
-        videoMinCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateX(-50%); right: 50%; }', 0);
-      }
-      if (alignment.y) {
-        videoMinCSS.sheet.insertRule(videoRef + ' { transform: translateY(-50%); top: 50%; }', 0);
-      } else if (alignment.x) {
-        videoMinCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateX(-50%); right: 50%; }', 0);
+        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateX(-' + alignment.x * 100 + '%); right: ' + alignment.x * 100 + '%; }', 0);
+      } else if (alignment.y) {
+        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateY(-' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; }', 0);
       }
     }
   }
@@ -47,11 +77,12 @@ var videoMin = function() {
     document.querySelector(videoRef).addEventListener( "loadedmetadata", function (e) {
       ratio = getRatio();
       videoSize();
+      toggleVideoDisplay();
     });
   }
 
   function getRatio() {
-    return calcRatio(video.videoWidth,video.videoHeight);
+    return calcRatio(video.object.videoWidth,video.object.videoHeight);
   }
 
   function calcRatio(width,height) {
@@ -77,19 +108,19 @@ var videoMin = function() {
   }
 
   function clearClass() {
-    video.className = "";
+    video.object.className = "";
   }
 
   function addClass(className) {
-    video.classList.add(className);
+    video.object.classList.add(className);
   }
 
   function togglePlay(editText, element) {
-    if (video.paused) {
-      video.play();
+    if (video.object.paused) {
+      video.object.play();
       if (editText) changeText(element,'Pause');
     } else {
-      video.pause();
+      video.object.pause();
       if (editText) changeText(element,'Play');
     }
   }

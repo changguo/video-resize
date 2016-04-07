@@ -12,22 +12,30 @@ var videoMin = function() {
   var ratio;
   var videoCss;
 
-  function Video() {
+  Video = {
+
+    // togglePlay: function(editText, element) {
+    //   if (this.object.paused) {
+    //     this.object.play();
+    //     //if (editText) changeText(element,'Pause');
+    //   } else {
+    //     this.object.pause();
+    //     //if (editText) changeText(element,'Play');
+    //   }
+    // }
 
   }
 
   this.init = function init(data) {
-    //video = document.querySelector(data.videoRef);
-    video = new Video();
+    video = Object.create(Video);
     video.object = document.querySelector(data.videoRef);
     toggleVideoDisplay();
     container = document.querySelector(data.containerRef);
     getStyles(data.videoRef, data.scale, data.alignment);
-    onLoad(data.videoRef  );
+    onLoad(data.videoRef);
   }
 
   function toggleVideoDisplay() { // Prevents flash-of-unstyled-video
-    console.log(video.object);
     video.object.style.opacity !== '0'
       ? video.object.style.opacity = '0'
       : video.object.style.opacity = '1';
@@ -57,20 +65,15 @@ var videoMin = function() {
 
   function createAlignStyle(videoCSS, videoRef, alignment) {
     if (!alignment) alignment = {x: 0.5, y: 0.5};
+    if (!alignment.y) alignment.y = 0;
+    if (!alignment.x) alignment.x = 0;
     if (alignment.x > 1 || alignment.x < 0) {
       alignment.x = 1;
     }
     if (alignment.y > 1 || alignment.y < 0) {
       alignment.y = 1;
-    } else if (alignment) {
-      if (alignment.y && alignment.x) {
-        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translate(-' + alignment.x * 100 + '%, -' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; left: ' + alignment.x * 100 + '%; }', 0);
-      } else if (alignment.x) {
-        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateX(-' + alignment.x * 100 + '%); right: ' + alignment.x * 100 + '%; }', 0);
-      } else if (alignment.y) {
-        videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translateY(-' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; }', 0);
-      }
     }
+    videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translate(-' + alignment.x * 100 + '%, -' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; left: ' + alignment.x * 100 + '%; }', 0);
   }
 
   function onLoad(videoRef) {
@@ -115,15 +118,15 @@ var videoMin = function() {
     video.object.classList.add(className);
   }
 
-  function togglePlay(editText, element) {
-    if (video.object.paused) {
-      video.object.play();
-      if (editText) changeText(element,'Pause');
-    } else {
-      video.object.pause();
-      if (editText) changeText(element,'Play');
-    }
-  }
+  // function togglePlay(editText, element) {
+  //   if (video.object.paused) {
+  //     video.object.play();
+  //     if (editText) changeText(element,'Pause');
+  //   } else {
+  //     video.object.pause();
+  //     if (editText) changeText(element,'Play');
+  //   }
+  // }
 
   function toggleMute(editText, element) {
     if (video.muted) {
@@ -150,7 +153,6 @@ var videoMin = function() {
   return {
     init: init,
     myMethod: myMethod,
-    togglePlay: togglePlay,
     toggleMute: toggleMute
   };
 }();

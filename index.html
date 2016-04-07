@@ -7,7 +7,11 @@
     <link rel="stylesheet" href="main.css" charset="utf-8">
   </head>
   <body>
-    <nav style="top: 0; left: 0;"><h4>video-min.js</h4></nav>
+    <nav style="top: 0; left: 0;">
+      <ul>
+      <li><h4><a href="https://github.com/robertjanes/video-min">video-min.js</a></h4></li>
+      <!-- <li><h4 onclick="">Pause</h4></li> -->
+    </nav>
     <video id="horn" autoplay loop muted="true">
       <source src="airhorn.mp4" type="video/mp4">
     </video>
@@ -15,7 +19,12 @@
     <script>
       videoMin.init({
         videoRef: '#horn',
-        containerRef: 'body'
+        containerRef: 'body',
+        scale: 0.5,
+        alignment: {
+          x: 0,
+          y: 0
+        }
       });
     </script>
   </body>

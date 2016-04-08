@@ -12,30 +12,20 @@ var videoMin = function() {
   var ratio;
   var videoCss;
 
-  Video = {
-
-    // togglePlay: function(editText, element) {
-    //   if (this.object.paused) {
-    //     this.object.play();
-    //     //if (editText) changeText(element,'Pause');
-    //   } else {
-    //     this.object.pause();
-    //     //if (editText) changeText(element,'Play');
-    //   }
-    // }
+  var Video = {
 
   }
 
   this.init = function init(data) {
     video = Object.create(Video);
     video.object = document.querySelector(data.videoRef);
-    toggleVideoDisplay();
+    toggleVideoDisplay(); // Prevents flash-of-unstyled-video
     container = document.querySelector(data.containerRef);
     getStyles(data.videoRef, data.scale, data.alignment);
     onLoad(data.videoRef);
   }
 
-  function toggleVideoDisplay() { // Prevents flash-of-unstyled-video
+  function toggleVideoDisplay() {
     video.object.style.opacity !== '0'
       ? video.object.style.opacity = '0'
       : video.object.style.opacity = '1';
@@ -64,22 +54,36 @@ var videoMin = function() {
   }
 
   function createAlignStyle(videoCSS, videoRef, alignment) {
-    if (!alignment) alignment = {x: 0.5, y: 0.5};
-    if (!alignment.y) alignment.y = 0;
-    if (!alignment.x) alignment.x = 0;
-    if (alignment.x > 1 || alignment.x < 0) {
-      alignment.x = 1;
+    if (!alignment) {
+      alignment = {x: 0.5, y: 0.5};
+    } else if (!alignment.x) {
+      alignment.y = 0;
+    } else if (!alignment.y) {
+      alignment.y = 0;
     }
-    if (alignment.y > 1 || alignment.y < 0) {
-      alignment.y = 1;
-    }
-    videoCSS.sheet.insertRule(videoRef + ' { -webkit-transform: translate(-' + alignment.x * 100 + '%, -' + alignment.y * 100 + '%); top: ' + alignment.y * 100 + '%; left: ' + alignment.x * 100 + '%; }', 0);
+    if (alignment.x > 1 || alignment.x < 0) alignment.x = 1;
+    if (alignment.y > 1 || alignment.y < 0) alignment.y = 1;
+
+    var alignmentPercent = {
+      x: decimalToPercent(alignment.x),
+      y: decimalToPercent(alignment.y)
+    };
+
+    // Bug: vender-prefixes don't work.
+    videoCSS.sheet.insertRule(videoRef +
+      ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
+      ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
+      ' -ms-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
+      ' -o-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
+      ' transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
+      ' top: ' + alignmentPercent.y + '%;' +
+      ' left: ' + alignmentPercent.x + '%; }', 0);
   }
 
   function onLoad(videoRef) {
     document.querySelector(videoRef).addEventListener( "loadedmetadata", function (e) {
       ratio = getRatio();
-      videoSize();
+      videoSize(container.clientWidth, container.clientHeight);
       toggleVideoDisplay();
     });
   }
@@ -92,16 +96,20 @@ var videoMin = function() {
     return width / height;
   }
 
-  function videoSize() {
-    if (container.clientWidth >= container.clientHeight) {
-      changeVideoSize('hr');
+  function decimalToPercent(decimal) {
+    return decimal * 100;
+  }
+
+  function videoSize(containerWidth, containerHeight) {
+    if (containerWidth >= containerHeight) {
+      changeVideoSize('hr', containerWidth, containerHeight);
     } else {
-      changeVideoSize('vr');
+      changeVideoSize('vr', containerWidth, containerHeight);
     }
   }
 
-  function changeVideoSize(prefix) {
-    if (container.clientWidth / ratio <= container.clientHeight) {
+  function changeVideoSize(prefix, containerWidth, containerHeight) {
+    if (containerWidth / ratio <= containerHeight) {
       clearClass();
       addClass(prefix + 'h');
     } else {
@@ -143,16 +151,11 @@ var videoMin = function() {
   }
 
   window.onresize = function() {
-    videoSize();
-  };
-
-  this.myMethod = function myMethod(video) {
-    alert( 'my method' + name.first );
+    videoSize(container.clientWidth, container.clientHeight);
   };
 
   return {
     init: init,
-    myMethod: myMethod,
     toggleMute: toggleMute
   };
 }();

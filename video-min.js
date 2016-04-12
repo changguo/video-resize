@@ -1,52 +1,92 @@
-// video-min
-// Scales html5 videos to fit frame, basic video controls
+// video-min.js
+// Scales html5 videos to fit frame
 // Developed by Robert Janes
 // robertjanes.com.au
 
-// Documentation needed
+var videoMin = (function() {
 
-var videoMin = function() {
+  var videos = [];
 
-  var video;
-  var container;
-  var ratio;
-  var videoCss;
+  function videoMin(data) {
+    this.ref = data.element;
+    this.element = document.querySelector(data.element);
+    this.element.container = this.element.parentElement;
+    this.scale = checkScale(data.scale);
+    this.alignment = checkAlignment(data.align);
+    this.element.fit = checkFit(data.fit);
+    addNewVideo(this);
 
-  var Video = {
+    this.init = function init() {
+      toggleVideoDisplay(this.element);
+      this.element.style.position = 'absolute';
+      this.styles = getStyles(this.ref, this.scale, this.alignment);
+      this.onLoad();
+    };
 
+    this.onLoad = function onLoad() {
+      this.element.addEventListener( "loadedmetadata", function (e) {
+        this.ratio = getRatio(this);
+        videoSize(this, this.container.clientWidth, this.container.clientHeight, this.ratio, this.fit);
+        toggleVideoDisplay(this);
+      });
+    };
+
+    this.resize = function resize() {
+      videoSize(this.element, this.element.container.clientWidth, this.element.container.clientHeight, this.element.ratio, this.element.fit);
+    };
+
+    this.toggleDisplay = function toggleDisplay() {
+      toggleVideoDisplay(this.element);
+    };
   }
 
-  this.init = function init(data) {
-    video = Object.create(Video);
-    video.object = document.querySelector(data.videoRef);
-    toggleVideoDisplay(); // Prevents flash-of-unstyled-video
-    container = document.querySelector(data.containerRef);
-    getStyles(data.videoRef, data.scale, data.alignment);
-    onLoad(data.videoRef);
+  function checkScale(scale) {
+    return !scale
+      ? 1
+      : scale;
   }
 
-  function toggleVideoDisplay() {
-    video.object.style.opacity !== '0'
-      ? video.object.style.opacity = '0'
-      : video.object.style.opacity = '1';
+  function checkAlignment(alignment) {
+    if (!alignment) {
+      alignment = {x: 0.5, y: 0.5};
+    } else if (!alignment.x) {
+      alignment.x = 0;
+    } else if (!alignment.y) {
+      alignment.y = 0;
+    }
+    return alignment;
+  }
+
+  function checkFit(fit) {
+    return !fit
+      ? 'cover'
+      : fit;
+  }
+
+  function addNewVideo(video) {
+    videos.push(video);
+  }
+
+  function toggleVideoDisplay(object) {
+    object.style.opacity !== '0'
+      ? object.style.opacity = '0'
+      : object.style.opacity = '1';
   }
 
   function getStyles(videoRef, scale, alignment) { // Needs to be more modular
-    creatCssSheet();
-    createScaleStyle(videoCSS, videoRef, scale);
-    createAlignStyle(videoCSS, videoRef, alignment);
+    var sheet = creatCssSheet();
+    var scale = createScaleStyle(sheet, videoRef, scale * 100);
+    var align = createAlignStyle(sheet, videoRef, alignment);
+    return sheet;
   }
 
   function creatCssSheet() {
     videoCSS = document.createElement("style");
     document.head.appendChild(videoCSS);
+    return videoCSS;
   }
 
   function createScaleStyle(videoCSS, videoRef, scale) {
-    !scale
-      ? scale = 100
-      : scale = scale * 100;
-    video.object.style.position = 'absolute';
     videoCSS.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
     videoCSS.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
     videoCSS.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
@@ -54,22 +94,11 @@ var videoMin = function() {
   }
 
   function createAlignStyle(videoCSS, videoRef, alignment) {
-    if (!alignment) {
-      alignment = {x: 0.5, y: 0.5};
-    } else if (!alignment.x) {
-      alignment.y = 0;
-    } else if (!alignment.y) {
-      alignment.y = 0;
-    }
-    if (alignment.x > 1 || alignment.x < 0) alignment.x = 1;
-    if (alignment.y > 1 || alignment.y < 0) alignment.y = 1;
-
     var alignmentPercent = {
       x: decimalToPercent(alignment.x),
       y: decimalToPercent(alignment.y)
     };
-
-    // Bug: vender-prefixes don't work.
+    // Error: vender-prefixes don't work.
     videoCSS.sheet.insertRule(videoRef +
       ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
@@ -80,19 +109,11 @@ var videoMin = function() {
       ' left: ' + alignmentPercent.x + '%; }', 0);
   }
 
-  function onLoad(videoRef) {
-    document.querySelector(videoRef).addEventListener( "loadedmetadata", function (e) {
-      ratio = getRatio();
-      videoSize(container.clientWidth, container.clientHeight);
-      toggleVideoDisplay();
-    });
+  function getRatio(element) {
+    return calcRatio(element.videoWidth, element.videoHeight);
   }
 
-  function getRatio() {
-    return calcRatio(video.object.videoWidth,video.object.videoHeight);
-  }
-
-  function calcRatio(width,height) {
+  function calcRatio(width, height) {
     return width / height;
   }
 
@@ -100,62 +121,37 @@ var videoMin = function() {
     return decimal * 100;
   }
 
-  function videoSize(containerWidth, containerHeight) {
+  function videoSize(element, containerWidth, containerHeight, ratio, fit) {
     if (containerWidth >= containerHeight) {
-      changeVideoSize('hr', containerWidth, containerHeight);
+      changeVideoSize(element, 'hr', containerWidth, containerHeight, ratio, fit);
     } else {
-      changeVideoSize('vr', containerWidth, containerHeight);
+      changeVideoSize(element, 'vr', containerWidth, containerHeight, ratio, fit);
     }
   }
 
-  function changeVideoSize(prefix, containerWidth, containerHeight) {
-    if (containerWidth / ratio <= containerHeight) {
-      clearClass();
-      addClass(prefix + 'h');
+  function changeVideoSize(element, prefix, containerWidth, containerHeight, ratio, fit) {
+    if ((containerWidth > containerHeight && fit === 'height') || (containerWidth / ratio <= containerHeight && fit === 'cover')) { //(containerWidth / ratio <= containerHeight)
+      clearClass(element);
+      addClass(element, prefix + 'h');
     } else {
-      clearClass();
-      addClass(prefix + 'w');
+      clearClass(element);
+      addClass(element, prefix + 'w');
     }
   }
 
-  function clearClass() {
-    video.object.className = "";
+  function clearClass(element) {
+    element.className = "";
   }
 
-  function addClass(className) {
-    video.object.classList.add(className);
-  }
-
-  // function togglePlay(editText, element) {
-  //   if (video.object.paused) {
-  //     video.object.play();
-  //     if (editText) changeText(element,'Pause');
-  //   } else {
-  //     video.object.pause();
-  //     if (editText) changeText(element,'Play');
-  //   }
-  // }
-
-  function toggleMute(editText, element) {
-    if (video.muted) {
-      video.muted = false;
-      if (editText) changeText(element,'Mute');
-    } else {
-      video.muted = true;
-      if (editText) changeText(element,'Unmute');
-    }
-  }
-
-  function changeText(element, text) {
-    element.innerHTML = text;
+  function addClass(element, className) {
+    element.classList.add(className);
   }
 
   window.onresize = function() {
-    videoSize(container.clientWidth, container.clientHeight);
+    for (var v=0; v <= videos.length - 1; v+=1) {
+      videos[v].resize();
+    }
   };
 
-  return {
-    init: init,
-    toggleMute: toggleMute
-  };
-}();
+  return videoMin;
+})();

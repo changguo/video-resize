@@ -1,4 +1,4 @@
 node_modules/**
+docs/*
 gulpfile.js
 package.json
-video-min-backup.js

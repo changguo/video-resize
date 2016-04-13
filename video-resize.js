@@ -1,29 +1,29 @@
-// video-min.js 0.6
+// video-resize.js 0.6
 // ———
-// A small Javascript library that efficiently
-// scales HTML5 video with CSS classes
-// ——
+// Javascript library for efficiently
+// scaling HTML5 videos with CSS
+// ———
 // Developed by Robert Janes
 // robertjanes.com.au
 
-var videoMin = (function() {
+var videoResize = (function() {
 
   var videos = [];
   var videoIndex = 0;
 
-  function videoMin(data) {
-    this.ref = data.element;
+  function videoResize(data) {
+    this.name = data.element;
     this.element = document.querySelector(data.element);
     this.container = this.element.parentElement;
-    this.scale = checkScale(data.scale);
-    this.alignment = checkAlignment(data.align);
-    this.fit = checkFit(data.fit);
+    this.scale = checkScaleInput(data.scale);
+    this.alignment = checkAlignmentInput(data.align);
+    this.fit = checkFitInput(data.fit);
     addNewVideo(this);
 
     this.init = function init() {
       toggleOpacity(this.element);
       this.element.style.position = 'absolute';
-      this.styles = getStyles(this.ref, this.scale, this.alignment);
+      this.styles = getStyles(this.name, this.scale, this.alignment);
       setOnLoad(this, this.element, this.container, this.fit);
       this.index = videoIndex;
       onResize(this.index);
@@ -39,27 +39,13 @@ var videoMin = (function() {
     };
   }
 
-  function checkScale(scale) {
+  function checkScaleInput(scale) {
     return !scale
       ? 1
       : scale;
   }
 
-  function setOnLoad(video, element, container, fit) {
-    element.addEventListener( "loadedmetadata", function (e) {
-      video.ratio = getVideoRatio(element);
-      videoSize(element, container.clientWidth, container.clientHeight, video.ratio, fit);
-      toggleOpacity(element);
-    });
-  }
-
-  function onResize(index) {
-    window.onresize = function() {
-      videos[index].resize();
-    };
-  }
-
-  function checkAlignment(alignment) {
+  function checkAlignmentInput(alignment) {
     if (!alignment) {
       alignment = {x: 0.5, y: 0.5};
     } else if (!alignment.x) {
@@ -70,7 +56,7 @@ var videoMin = (function() {
     return alignment;
   }
 
-  function checkFit(fit) {
+  function checkFitInput(fit) {
     return !fit
       ? 'cover'
       : fit;
@@ -87,32 +73,32 @@ var videoMin = (function() {
   }
 
   function getStyles(videoRef, scale, alignment) { // Needs to be more modular
-    var sheet = creatCssSheet();
-    var scale = createScaleStyle(sheet, videoRef, scale * 100);
-    var align = createAlignStyle(sheet, videoRef, alignment);
-    return sheet;
+    var videoStyles = createStyleSheet();
+    createScaleStyles(videoStyles, videoRef, scale * 100);
+    createAlignStyles(videoStyles, videoRef, alignment);
+    return videoStyles;
   }
 
-  function creatCssSheet() {
-    videoCSS = document.createElement("style");
-    document.head.appendChild(videoCSS);
-    return videoCSS;
+  function createStyleSheet() {
+    var videoStyles = document.createElement("style");
+    document.head.appendChild(videoStyles);
+    return videoStyles;
   }
 
-  function createScaleStyle(videoCSS, videoRef, scale) {
-    videoCSS.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
-    videoCSS.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
-    videoCSS.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
-    videoCSS.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
+  function createScaleStyles(videoStyles, videoRef, scale) {
+    videoStyles.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
+    videoStyles.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
+    videoStyles.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
+    videoStyles.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
   }
 
-  function createAlignStyle(videoCSS, videoRef, alignment) {
+  function createAlignStyles(videoStyles, videoRef, alignment) {
     var alignmentPercent = {
       x: decimalToPercent(alignment.x),
       y: decimalToPercent(alignment.y)
     };
     // Error: vender-prefixes don't work.
-    videoCSS.sheet.insertRule(videoRef +
+    videoStyles.sheet.insertRule(videoRef +
       ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -ms-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
@@ -120,6 +106,20 @@ var videoMin = (function() {
       ' transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' top: ' + alignmentPercent.y + '%;' +
       ' left: ' + alignmentPercent.x + '%; }', 0);
+  }
+
+  function setOnLoad(video, element, container, fit) {
+    element.addEventListener( "loadedmetadata", function (e) {
+      video.ratio = getVideoRatio(element);
+      videoSize(element, container.clientWidth, container.clientHeight, video.ratio, fit);
+      toggleOpacity(element);
+    });
+  }
+
+  function onResize(index) {
+    window.onresize = function() {
+      videos[index].resize();
+    };
   }
 
   function videoSize(element, containerWidth, containerHeight, ratio, fit) {
@@ -160,5 +160,5 @@ var videoMin = (function() {
     return number * 100;
   }
 
-  return videoMin;
+  return videoResize;
 })();

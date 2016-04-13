@@ -2,7 +2,7 @@
 
 ![video-min.js in action](assets/video-resize.gif?raw=true)
 
-A small Javascript library that efficiently scales HTML5 video with CSS classes.
+A small Javascript library that efficiently scales HTML5 videos with CSS classes.
 
 ## Use
 
@@ -41,7 +41,7 @@ var video = new videoMin({element: '#video', scale: 0.75});
 
 #### Align
 
-Defines the position of the video within the container. `align: {x: 0.5, y: 0.5}` is the center of the container.
+Defines the position of the video within the container. `align: {x: 0.5, y: 0.5}` will result in a centered video.
 
 ```javascript
 var video = new videoMin({element: '#video', align: {x: 0, y: 1}); // Bottom-left of container
@@ -57,3 +57,7 @@ Determines how the video will resize.
 ```javascript
 var video = new videoMin({element: '#video', fit: 'height');
 ```
+
+### Limitations
+
+Currently the video's CSS classes don't contain vector prefixes for the `transform` property.

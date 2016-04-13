@@ -1,42 +1,41 @@
-// video-min.js
-// Scales html5 videos to fit frame
+// video-min.js 0.6
+// ———
+// A small Javascript library that efficiently
+// scales HTML5 video with CSS classes
+// ——
 // Developed by Robert Janes
 // robertjanes.com.au
 
 var videoMin = (function() {
 
   var videos = [];
+  var videoIndex = 0;
 
   function videoMin(data) {
     this.ref = data.element;
     this.element = document.querySelector(data.element);
-    this.element.container = this.element.parentElement;
+    this.container = this.element.parentElement;
     this.scale = checkScale(data.scale);
     this.alignment = checkAlignment(data.align);
-    this.element.fit = checkFit(data.fit);
+    this.fit = checkFit(data.fit);
     addNewVideo(this);
 
     this.init = function init() {
-      toggleVideoDisplay(this.element);
+      toggleOpacity(this.element);
       this.element.style.position = 'absolute';
       this.styles = getStyles(this.ref, this.scale, this.alignment);
-      this.onLoad();
-    };
-
-    this.onLoad = function onLoad() {
-      this.element.addEventListener( "loadedmetadata", function (e) {
-        this.ratio = getRatio(this);
-        videoSize(this, this.container.clientWidth, this.container.clientHeight, this.ratio, this.fit);
-        toggleVideoDisplay(this);
-      });
+      setOnLoad(this, this.element, this.container, this.fit);
+      this.index = videoIndex;
+      onResize(this.index);
+      videoIndex +=1;
     };
 
     this.resize = function resize() {
-      videoSize(this.element, this.element.container.clientWidth, this.element.container.clientHeight, this.element.ratio, this.element.fit);
+      videoSize(this.element, this.container.clientWidth, this.container.clientHeight, this.ratio, this.fit);
     };
 
-    this.toggleDisplay = function toggleDisplay() {
-      toggleVideoDisplay(this.element);
+    this.toggleVisible = function toggleVisible() {
+      toggleOpacity(this.element);
     };
   }
 
@@ -44,6 +43,20 @@ var videoMin = (function() {
     return !scale
       ? 1
       : scale;
+  }
+
+  function setOnLoad(video, element, container, fit) {
+    element.addEventListener( "loadedmetadata", function (e) {
+      video.ratio = getVideoRatio(element);
+      videoSize(element, container.clientWidth, container.clientHeight, video.ratio, fit);
+      toggleOpacity(element);
+    });
+  }
+
+  function onResize(index) {
+    window.onresize = function() {
+      videos[index].resize();
+    };
   }
 
   function checkAlignment(alignment) {
@@ -67,7 +80,7 @@ var videoMin = (function() {
     videos.push(video);
   }
 
-  function toggleVideoDisplay(object) {
+  function toggleOpacity(object) {
     object.style.opacity !== '0'
       ? object.style.opacity = '0'
       : object.style.opacity = '1';
@@ -109,18 +122,6 @@ var videoMin = (function() {
       ' left: ' + alignmentPercent.x + '%; }', 0);
   }
 
-  function getRatio(element) {
-    return calcRatio(element.videoWidth, element.videoHeight);
-  }
-
-  function calcRatio(width, height) {
-    return width / height;
-  }
-
-  function decimalToPercent(decimal) {
-    return decimal * 100;
-  }
-
   function videoSize(element, containerWidth, containerHeight, ratio, fit) {
     if (containerWidth >= containerHeight) {
       changeVideoSize(element, 'hr', containerWidth, containerHeight, ratio, fit);
@@ -147,11 +148,17 @@ var videoMin = (function() {
     element.classList.add(className);
   }
 
-  window.onresize = function() {
-    for (var v=0; v <= videos.length - 1; v+=1) {
-      videos[v].resize();
-    }
-  };
+  function getVideoRatio(element) {
+    return calcRatio(element.videoWidth, element.videoHeight);
+  }
+
+  function calcRatio(width, height) {
+    return width / height;
+  }
+
+  function decimalToPercent(number) {
+    return number * 100;
+  }
 
   return videoMin;
 })();

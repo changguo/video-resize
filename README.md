@@ -12,7 +12,7 @@ Create a video object
 var video = new videoResize({element: '#video'});
 ```
 
-Initiate videoMin
+Initiate videoResize
 
 ```javascript
 video.init();

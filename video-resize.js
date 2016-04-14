@@ -1,4 +1,4 @@
-// video-resize.js 0.6
+// video-resize.js 0.6.5
 // ———
 // Javascript library for efficiently
 // scaling HTML5 videos with CSS
@@ -23,7 +23,7 @@ var videoResize = (function() {
     this.init = function init() {
       toggleOpacity(this.element);
       this.element.style.position = 'absolute';
-      this.styles = getStyles(this.name, this.scale, this.alignment);
+      this.styles = getStyles(this.name, this.scale, this.alignment, this.element);
       setOnLoad(this, this.element, this.container, this.fit);
       this.index = videoIndex;
       onResize(this.index);
@@ -72,10 +72,10 @@ var videoResize = (function() {
       : object.style.opacity = '1';
   }
 
-  function getStyles(videoRef, scale, alignment) { // Needs to be more modular
+  function getStyles(videoRef, scale, alignment, element) { // Needs to be more modular
     var videoStyles = createStyleSheet();
     createScaleStyles(videoStyles, videoRef, scale * 100);
-    createAlignStyles(videoStyles, videoRef, alignment);
+    createAlignStyles(videoStyles, videoRef, alignment, element);
     return videoStyles;
   }
 
@@ -92,12 +92,12 @@ var videoResize = (function() {
     videoStyles.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
   }
 
-  function createAlignStyles(videoStyles, videoRef, alignment) {
+  function createAlignStyles(videoStyles, videoRef, alignment, element) {
     var alignmentPercent = {
       x: decimalToPercent(alignment.x),
       y: decimalToPercent(alignment.y)
     };
-    // Error: vender-prefixes don't work.
+    // Vender prefixes aren't apparent in browser, but do work.
     videoStyles.sheet.insertRule(videoRef +
       ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +

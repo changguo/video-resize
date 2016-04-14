@@ -57,7 +57,3 @@ Determines how the video will resize.
 ```javascript
 var video = new videoResize({element: '#video', fit: 'height');
 ```
-
-### Limitations
-
-Currently the video's CSS classes don't contain vector prefixes for the `transform` property.

@@ -109,11 +109,21 @@ var videoResize = (function() {
   }
 
   function setOnLoad(video, element, container, fit) {
-    element.addEventListener( "loadedmetadata", function (e) {
-      video.ratio = getVideoRatio(element);
-      videoSize(element, container.clientWidth, container.clientHeight, video.ratio, fit);
-      toggleOpacity(element);
-    });
+    // If video metadata not loaded, listen for load.
+    // Else, check if already loaded.
+    if (element.readyState === 0) {
+      element.addEventListener( "loadedmetadata", function (e) {
+        videoLoaded(video, element, container, fit);
+      });
+    } else if (element.readyState >= 1) {
+      videoLoaded(video, element, container, fit);
+    }
+  }
+
+  function videoLoaded(video, element, container, fit) {
+    video.ratio = getVideoRatio(element);
+    videoSize(element, container.clientWidth, container.clientHeight, video.ratio, fit);
+    toggleOpacity(element);
   }
 
   function onResize(index) {

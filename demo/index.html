@@ -13,13 +13,19 @@
       </ul>
     </nav>
     <div class="container">
-      <video id="airhorn" autoplay loop>
-        <source src="airhorn.mp4" type="video/mp4">
+      <video id="airhorn" poster="airhorn.jpg" autoplay loop>
+        <!-- <source src="airhorn.mp4" type="video/mp4"> -->
       </video>
     </div>
     <script src="../video-resize.min.js"></script>
     <script>
-      var airhorn = new videoResize({element: '#airhorn', scale: 1, align: {x: 0.5, y: 0.5}, fit: 'cover'});
+      var airhorn = new videoResize({
+        element: '#airhorn',
+        scale: 1,
+        align: {x: 0.5, y: 0.5},
+        sources: 'airhorn.mp4',
+        fit: 'cover'
+      });
       airhorn.init();
     </script>
   </body>

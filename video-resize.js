@@ -1,60 +1,66 @@
-// video-resize.js v0.6.6
-// 21 April 2016
-// ———
-// Javascript library for efficiently
-// scaling HTML5 videos with CSS
-// ———
-// Developed by Robert Janes
-// robertjanes.com.au
+const videoResize = (function() {
 
-var videoResize = (function() {
+  class Env {
+    constructor() {
+      this.videos = [];
+    }
+  }
 
-  var videos = [];
-  var videoIndex = 0;
+  class Video {
+    constructor(args) {
+      this.name = args.element;
+      this.element = document.querySelector(args.element);
+      this.container = this.element.parentElement;
+      this.sources = inputDefaultVal(args.sources, false);
+      this.loop = inputDefaultVal(args.loop, false);
+      this.autoplay = inputDefaultVal(args.autoplay, false);
+      this.muted = inputDefaultVal(args.mute, false);
+      this.poster = inputDefaultVal(args.poster, false);
+      this.currentClass = '';
+      this.scale = inputDefaultVal(args.scale, 1);
+      this.alignment = alignmentVal(args.align);
+      this.fit = inputDefaultVal(args.fit, 'cover');
+      this.mobileBreak = inputDefaultVal(args.mobileBreak, 1024);
+      this.updateStyles();
+      env.videos.push(this);
+      this.index = env.videos.length - 1;
+      this.active = false
+    }
 
-  function videoResize(data) {
-    this.name = data.element;
-    this.element = document.querySelector(data.element);
-    this.container = this.element.parentElement;
-    this.sources = checkSourcesInput(data.sources);
-    this.scale = checkScaleInput(data.scale);
-    this.alignment = checkAlignmentInput(data.align);
-    this.fit = checkFitInput(data.fit);
-    this.mobileBreak = checkMobileBreakInput(data.mobileBreak);
-    this.currentClass = '';
-    addNewVideo(this);
+    updateStyles() {
+      const styles = createStyleSheet();
+      createScaleCSS(styles, this.name, this.scale * 100);
+      createAlignCSS(styles, this.name, this.alignment);
+    }
 
-    this.init = function init() {
-      toggleOpacity(this.element);
-      this.styles = getStyles(this.name, this.scale, this.alignment, this.element);
-      setOnLoad(this, this.element, this.container, this.fit, this.mobileBreak, this.sources, this.name);
-      this.index = videoIndex;
-      onResize(this.index);
-      videoIndex +=1;
-    };
+    update() {
+      this.updateStyles();
+      this.resize();
+    }
 
-    this.resize = function resize() {
+    resize() {
       checkVideoSize(this, this.element, this.container.clientWidth, this.container.clientHeight, this.ratio, this.fit);
     };
 
-    this.toggleVisible = function toggleVisible() {
-      toggleOpacity(this.element);
-    };
+    init() {
+      if (!this.active) {
+        setVideoOnLoad(this, this.element, this.container, this.fit, this.mobileBreak, this.sources, this.name);
+        onResize(this.index);
+        this.active = true;
+      } else {
+        this.update();
+      }
+    }
   }
 
-  function checkSourcesInput(sources) {
-    return !sources
-      ? false
-      : sources;
-  }
+  /*
+    Data validation
+  */
 
-  function checkScaleInput(scale) {
-    return !scale
-      ? 1
-      : scale;
+  function inputDefaultVal(val, def) {
+    return !val ? def: val;
   }
-
-  function checkAlignmentInput(alignment) {
+  function alignmentVal(alignment) {
     if (!alignment) {
       alignment = {x: 0.5, y: 0.5};
     } else if (!alignment.x) {
@@ -65,56 +71,20 @@ var videoResize = (function() {
     return alignment;
   }
 
-  function checkFitInput(fit) {
-    return !fit
-      ? 'cover'
-      : fit;
-  }
-
-  function checkMobileBreakInput(mobileBreak) {
-    return !mobileBreak
-      ? 1024
-      : mobileBreak;
-  }
-
-  function addNewVideo(video) {
-    videos.push(video);
-  }
-
-  function toggleOpacity(object) {
-    object.style.opacity !== '0'
-      ? object.style.opacity = '0'
-      : object.style.opacity = '1';
-  }
-
-  function getStyles(videoRef, scale, alignment, element) {
-    var videoStyles = createStyleSheet();
-    createScaleStyles(videoStyles, videoRef, scale * 100);
-    createAlignStyles(videoStyles, videoRef, alignment, element);
-    return videoStyles;
-  }
+  /*
+    Styles
+  */
 
   function createStyleSheet() {
-    var sheet = document.createElement("style");
-    document.head.appendChild(sheet);
-    return sheet;
+    return document.head.appendChild(document.createElement("style"));
   }
 
-  function createScaleStyles(videoStyles, videoRef, scale) {
-    videoStyles.sheet.insertRule(videoRef + '.hrh { height: ' + scale + '%; }', 0);
-    videoStyles.sheet.insertRule(videoRef + '.hrw { width: ' + scale + '%; }', 0);
-    videoStyles.sheet.insertRule(videoRef + '.vrh { height: ' + scale + '%; }', 0);
-    videoStyles.sheet.insertRule(videoRef + '.vrw { width: ' + scale + '%; }', 0);
-  }
-
-  function createAlignStyles(videoStyles, videoRef, alignment, element) {
-    var alignmentPercent = {
-      x: decimalToPercent(alignment.x),
-      y: decimalToPercent(alignment.y)
+  function createAlignCSS(styles, name, alignment) {
+    let alignmentPercent = {
+      x: decToPer(alignment.x),
+      y: decToPer(alignment.y)
     };
-    // Vender prefixes aren't apparent in browser, but do work.
-    // To-address: this is a very long expression.
-    videoStyles.sheet.insertRule(videoRef +
+    styles.sheet.insertRule(name +
       ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
       ' -ms-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
@@ -124,9 +94,23 @@ var videoResize = (function() {
       ' left: ' + alignmentPercent.x + '%; }', 0);
   }
 
-  function setOnLoad(video, element, container, fit, mobileBreak, sources, name) {
+  function createScaleCSS(styles, name, scale) {
+    styles.sheet.insertRule(name + '.hrh { height: ' + scale + '%; }', 0);
+    styles.sheet.insertRule(name + '.hrw { width: ' + scale + '%; }', 0);
+    styles.sheet.insertRule(name + '.vrh { height: ' + scale + '%; }', 0);
+    styles.sheet.insertRule(name + '.vrw { width: ' + scale + '%; }', 0);
+  }
+
+  /*
+    Video on-load
+  */
+
+  function setVideoOnLoad(video, element, container, fit, mobileBreak, sources, name) {
     if (!checkIfMobile(mobileBreak)) {
-      if (sources !== false) activateVideos(element, sources);
+      let videoElement = createBaseNode('video', video, element, sources);
+      video.element = videoElement; // Update element object
+      element = videoElement;
+      video.element.muted = video.muted;
       // If video metadata not loaded, listen for load.
       // Else, check if already loaded.
       if (element.readyState === 0) {
@@ -138,7 +122,7 @@ var videoResize = (function() {
       }
     } else {
       // If on mobile, delete <video> node and create <img>
-      imageElement = deactivateVideos(video, element, container);
+      let imageElement = createBaseNode('img', video, element, sources);
       video.element = imageElement; // Update element object
       imageElement.onload = function() { // Prevents clientWidth/Height returning 0
         videoLoaded(video, imageElement, container, fit, name);
@@ -147,15 +131,29 @@ var videoResize = (function() {
   }
 
   function checkIfMobile(mobileBreak) {
-    return window.innerWidth <= mobileBreak
-      ? true
-      : false;
+    return window.innerWidth <= mobileBreak ? true: false;
   }
 
-  function activateVideos(element, sources) {
+  function createBaseNode(nodeType, video, element, sources) {
+    return nodeType == 'video'
+      ? createVideoNode(video, element, sources)
+      : createImgNode(video, element, sources);
+  }
+
+  function createVideoNode(video, element, sources) {
+    let videoNode = createNode('video');
+    videoNode.setAttribute('id', video.name.substring(1));
+    videoNode.setAttribute('autoplay', video.autoplay);
+    videoNode.setAttribute('loop', video.loop);
+    replacePlaceholderDiv(element, videoNode, video.container);
+    activateVideo(video, videoNode, sources);
+    return videoNode;
+  }
+
+  function activateVideo(video, element, sources) {
     // Check if multiple sources entered
     if (Array.isArray(sources)) {
-      for (var s=0; s < sources.length; s+=1) {
+      for (let s = 0; s < sources.length; s += 1) {
         createSourceNode(element, sources[s]);
       }
     } else {
@@ -164,55 +162,36 @@ var videoResize = (function() {
   }
 
   function createSourceNode(element, source) {
-    var sourceNode = createNode('source');
+    let sourceNode = createNode('source');
     sourceNode.setAttribute('src', source);
-    var sourceSplit = source.split('.');
+    let sourceType = getFilenameExtension(source);
     // Check if .ogv, which needs type="video/ogg"
-    var sourceType = sourceSplit[sourceSplit.length - 1] === 'ogv'
-      ? 'ogg'
-      : sourceSplit[sourceSplit.length - 1];
-    sourceNode.setAttribute('type', 'video/' + sourceType);
+    let sourceTypeVal = sourceType === 'ogv' ? 'ogg': sourceType;
+    sourceNode.setAttribute('type', 'video/' + sourceTypeVal);
     element.appendChild(sourceNode);
   }
 
-  function deactivateVideos(video, element, container) {
-    // If <source>/s exists, delete them
-    if (video.sources === false) {
-      deleteVideosSources(element);
-    }
-    var image = createNode('img');
-    image.setAttribute('src', element.getAttribute('poster'));
-    image.setAttribute('id', video.name.substring(1)); // substring to remove #
-    image.style.opacity = 0;
-    container.insertBefore(image, element);
-    container.removeChild(element);
-    return image;
-  }
-
-  function deleteVideosSources(element) {
-    var sources = element.querySelectorAll('source');
-    for (var s=0; s < sources.length; s+=1) {
-      element.removeChild(sources[s]);
-      element.load(); // forces browser to abadon buffering
-    }
+  function getFilenameExtension(filename) {
+    let filenameSplit = filename.split('.');
+    return filenameSplit[filenameSplit.length - 1];
   }
 
   function videoLoaded(video, element, container, fit, name) {
     element.style.position = 'absolute';
-    removeVideoWidthHeight(element);
+    removeVidWidthHeight(element);
     video.ratio = getVideoRatio(element, video);
     checkVideoSize(video, element, container.clientWidth, container.clientHeight, video.ratio, fit);
     toggleOpacity(element);
   }
 
-  function createNode(tag) {
-    return document.createElement(tag);
+  function removeVidWidthHeight(el) {
+    el.style.width = '';
+    el.style.height = '';
   }
 
-  function onResize(index) {
-    window.onresize = function() {
-      videos[index].resize();
-    };
+  function replacePlaceholderDiv(div, newNode, container) {
+    container.appendChild(newNode);
+    container.removeChild(div);
   }
 
   function checkVideoSize(video, element, containerWidth, containerHeight, ratio, fit) {
@@ -235,33 +214,73 @@ var videoResize = (function() {
     }
   }
 
-  function clearClass(element) {
-    element.className = "";
+  /*
+    Mobile
+  */
+
+  function createImgNode(video, element, container) {
+    // If <source>/s exists, delete them
+    if (video.sources == false) {
+      deleteVideosSources(element);
+    }
+    let imageNode = createNode('img');
+    imageNode.setAttribute('src', video.poster);
+    imageNode.setAttribute('id', video.name.substring(1)); // substring to remove #
+    imageNode.style.opacity = 0;
+    replacePlaceholderDiv(element, imageNode, video.container);
+    return imageNode;
   }
 
-  function addClass(element, className) {
-    element.classList.add(className);
+  function deleteVideosSources(element) {
+    let sources = element.querySelectorAll('source');
+    for (let s = 0; s < sources.length; s += 1) {
+      element.removeChild(sources[s]);
+      element.load(); // forces browser to abadon buffering?
+    }
   }
 
-  function getVideoRatio(element) {
-    // clientHeight/Width doesn't work if no video <source> defined (Firefox)
-    // videoWidth, videoHeight break code when no video defined
-    return calcRatio(element.clientWidth, element.clientHeight);
-  }
+  /*
+    Helpers
+  */
 
+  // clientHeight/Width doesn't work if no video <source> defined (Firefox)
+  // videoWidth, videoHeight break code when no video defined
+  function getVideoRatio(el) {
+    return calcRatio(el.clientWidth, el.clientHeight);
+  }
+  function clearClass(el) {
+    return el.className = "";
+  }
+  function addClass(el, className) {
+    return el.classList.add(className);
+  }
+  function createNode(tag) {
+    return document.createElement(tag);
+  }
   function calcRatio(width, height) {
     return width / height;
   }
-
-  function decimalToPercent(number) {
-    return number * 100;
+  function decToPer(num) {
+    return num * 100;
+  }
+  function toggleOpacity(el) {
+    return el.style.opacity = el.style.opacity == 0 ? 1: 0;
+  }
+  function onResize(index) {
+    window.onresize = () => env.videos[index].resize();
   }
 
-  function removeVideoWidthHeight(element) {
-    // Remove any width/height pre-defined in style tag
-    element.style.width = '';
-    element.style.height = '';
+  /*
+    Other
+  */
+
+  function newVideo(args) {
+    return new Video(args);
   }
 
-  return videoResize;
+  const env = new Env();
+
+  return {
+    video: newVideo
+  }
 })();

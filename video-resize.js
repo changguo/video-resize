@@ -1,5 +1,4 @@
 const videoResize = (function() {
-
   class Env {
     constructor() {
       this.videos = [];
@@ -24,7 +23,7 @@ const videoResize = (function() {
       this.updateStyles();
       env.videos.push(this);
       this.index = env.videos.length - 1;
-      this.active = false
+      this.active = false;
     }
 
     updateStyles() {
@@ -48,7 +47,7 @@ const videoResize = (function() {
         onResize(this.index);
         this.active = true;
       } else {
-        this.update();
+        throw new Error('Video already initialized.');
       }
     }
   }
@@ -56,7 +55,6 @@ const videoResize = (function() {
   /*
     Data validation
   */
-
   function inputDefaultVal(val, def) {
     return !val ? def: val;
   }
@@ -74,24 +72,23 @@ const videoResize = (function() {
   /*
     Styles
   */
-
   function createStyleSheet() {
     return document.head.appendChild(document.createElement("style"));
   }
 
   function createAlignCSS(styles, name, alignment) {
-    let alignmentPercent = {
-      x: decToPer(alignment.x),
-      y: decToPer(alignment.y)
+    let ap = {
+      x: decimalToPercent(alignment.x),
+      y: decimalToPercent(alignment.y)
     };
     styles.sheet.insertRule(name +
-      ' { -webkit-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
-      ' -moz-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
-      ' -ms-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
-      ' -o-transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
-      ' transform: translate(-' + alignmentPercent.x + '%, -' + alignmentPercent.y + '%);' +
-      ' top: ' + alignmentPercent.y + '%;' +
-      ' left: ' + alignmentPercent.x + '%; }', 0);
+      ' { -webkit-transform: translate(-' + ap.x + '%, -' + ap.y + '%);' +
+      ' -moz-transform: translate(-' + ap.x + '%, -' + ap.y + '%);' +
+      ' -ms-transform: translate(-' + ap.x + '%, -' + ap.y + '%);' +
+      ' -o-transform: translate(-' + ap.x + '%, -' + ap.y + '%);' +
+      ' transform: translate(-' + ap.x + '%, -' + ap.y + '%);' +
+      ' top: ' + ap.y + '%;' +
+      ' left: ' + ap.x + '%; }', 0);
   }
 
   function createScaleCSS(styles, name, scale) {
@@ -102,26 +99,22 @@ const videoResize = (function() {
   }
 
   /*
-    Video on-load
+    Other
   */
-
   function setVideoOnLoad(video, element, container, fit, mobileBreak, sources, name) {
     if (!checkIfMobile(mobileBreak)) {
       let videoElement = createBaseNode('video', video, element, sources);
       video.element = videoElement; // Update element object
       element = videoElement;
       video.element.muted = video.muted;
-      // If video metadata not loaded, listen for load.
-      // Else, check if already loaded.
-      if (element.readyState === 0) {
+      if (element.readyState === 0) { // If video metadata not loaded, listen for load.
         element.addEventListener( "loadedmetadata", function (e) {
           videoLoaded(video, element, container, fit, name);
         });
-      } else if (element.readyState >= 1) {
+      } else if (element.readyState >= 1) { // Else, check if already loaded.
         videoLoaded(video, element, container, fit, name);
       }
-    } else {
-      // If on mobile, delete <video> node and create <img>
+    } else { // If on mobile, delete <video> node and create <img>
       let imageElement = createBaseNode('img', video, element, sources);
       video.element = imageElement; // Update element object
       imageElement.onload = function() { // Prevents clientWidth/Height returning 0
@@ -141,18 +134,19 @@ const videoResize = (function() {
   }
 
   function createVideoNode(video, element, sources) {
-    let videoNode = createNode('video');
+    let videoNode = createElement('video');
+    videoNode.style.opacity = 0;
     videoNode.setAttribute('id', video.name.substring(1));
-    videoNode.setAttribute('autoplay', video.autoplay);
     videoNode.setAttribute('loop', video.loop);
+    videoNode.setAttribute('poster', video.poster);
+    if (video.autoplay) videoNode.setAttribute('autoplay', video.autoplay);
     replacePlaceholderDiv(element, videoNode, video.container);
     activateVideo(video, videoNode, sources);
     return videoNode;
   }
 
   function activateVideo(video, element, sources) {
-    // Check if multiple sources entered
-    if (Array.isArray(sources)) {
+    if (Array.isArray(sources)) { // Check if multiple sources entered
       for (let s = 0; s < sources.length; s += 1) {
         createSourceNode(element, sources[s]);
       }
@@ -162,36 +156,35 @@ const videoResize = (function() {
   }
 
   function createSourceNode(element, source) {
-    let sourceNode = createNode('source');
+    let sourceNode = createElement('source');
+    let sourceType = getFileExtension(source);
+    let sourceTypeVal = sourceType === 'ogv' ? 'ogg': sourceType; // Check if .ogv, which needs type="video/ogg"
     sourceNode.setAttribute('src', source);
-    let sourceType = getFilenameExtension(source);
-    // Check if .ogv, which needs type="video/ogg"
-    let sourceTypeVal = sourceType === 'ogv' ? 'ogg': sourceType;
     sourceNode.setAttribute('type', 'video/' + sourceTypeVal);
     element.appendChild(sourceNode);
   }
 
-  function getFilenameExtension(filename) {
-    let filenameSplit = filename.split('.');
-    return filenameSplit[filenameSplit.length - 1];
+  function getFileExtension(file) {
+    let fileSplit = file.split('.');
+    return fileSplit[fileSplit.length - 1];
   }
 
   function videoLoaded(video, element, container, fit, name) {
     element.style.position = 'absolute';
-    removeVidWidthHeight(element);
+    removeElWidthHeight(element);
     video.ratio = getVideoRatio(element, video);
     checkVideoSize(video, element, container.clientWidth, container.clientHeight, video.ratio, fit);
     toggleOpacity(element);
   }
 
-  function removeVidWidthHeight(el) {
+  function removeElWidthHeight(el) {
     el.style.width = '';
     el.style.height = '';
   }
 
-  function replacePlaceholderDiv(div, newNode, container) {
-    container.appendChild(newNode);
-    container.removeChild(div);
+  function replacePlaceholderDiv(oldEl, newEl, container) {
+    container.appendChild(newEl);
+    container.removeChild(oldEl);
   }
 
   function checkVideoSize(video, element, containerWidth, containerHeight, ratio, fit) {
@@ -203,7 +196,8 @@ const videoResize = (function() {
   }
 
   function changeVideoSize(video, element, prefix, containerWidth, containerHeight, ratio, fit) {
-    if ((containerWidth > containerHeight && fit === 'height') || (containerWidth / ratio <= containerHeight && fit === 'cover')) { //(containerWidth / ratio <= containerHeight)
+    if ((containerWidth > containerHeight && fit === 'height')
+      || (containerWidth / ratio <= containerHeight && fit === 'cover')) { //(containerWidth / ratio <= containerHeight)
       clearClass(element);
       addClass(element, prefix + 'h');
       video.currentClass = prefix + 'h';
@@ -214,19 +208,15 @@ const videoResize = (function() {
     }
   }
 
-  /*
-    Mobile
-  */
-
   function createImgNode(video, element, container) {
-    // If <source>/s exists, delete them
-    if (video.sources == false) {
+    // If <source>/s exist, delete them
+    if (!video.sources) {
       deleteVideosSources(element);
     }
-    let imageNode = createNode('img');
+    let imageNode = createElement('img');
+    imageNode.style.opacity = 0;
     imageNode.setAttribute('src', video.poster);
     imageNode.setAttribute('id', video.name.substring(1)); // substring to remove #
-    imageNode.style.opacity = 0;
     replacePlaceholderDiv(element, imageNode, video.container);
     return imageNode;
   }
@@ -242,43 +232,50 @@ const videoResize = (function() {
   /*
     Helpers
   */
-
+  function addClass(el, className) {
+    return el.classList.add(className);
+  }
+  function calcRatio(width, height) {
+    return width / height;
+  }
+  function clearClass(el) {
+    return el.className = "";
+  }
+  function createElement(tag) {
+    return document.createElement(tag);
+  }
+  function decimalToPercent(num) {
+    return num * 100;
+  }
   // clientHeight/Width doesn't work if no video <source> defined (Firefox)
   // videoWidth, videoHeight break code when no video defined
   function getVideoRatio(el) {
     return calcRatio(el.clientWidth, el.clientHeight);
   }
-  function clearClass(el) {
-    return el.className = "";
-  }
-  function addClass(el, className) {
-    return el.classList.add(className);
-  }
-  function createNode(tag) {
-    return document.createElement(tag);
-  }
-  function calcRatio(width, height) {
-    return width / height;
-  }
-  function decToPer(num) {
-    return num * 100;
+  function onResize(index) {
+    window.onresize = () => env.videos[index].resize();
   }
   function toggleOpacity(el) {
     return el.style.opacity = el.style.opacity == 0 ? 1: 0;
   }
-  function onResize(index) {
-    window.onresize = () => env.videos[index].resize();
-  }
 
   /*
-    Other
+    Init
   */
-
   function newVideo(args) {
     return new Video(args);
   }
-
   const env = new Env();
+
+  return {
+    video: newVideo
+  }
+})();
+
+const vr = (function() {
+  function newVideo(args) {
+    return videoResize.video(args);
+  }
 
   return {
     video: newVideo

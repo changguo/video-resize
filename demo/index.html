@@ -29,14 +29,13 @@
     </div>
     <script src="../video-resize.min.js"></script>
     <script>
-      var airhorn = videoResize.video({
+      var airhorn = vr.video({
         element: '#airhorn',
         align: {x: 0.5, y: 0.5},
         sources: 'airhorn.mp4',
         poster: 'airhorn.jpg',
         autoplay: true,
-        mobileBreak: 10,
-        mute: true
+        mobileBreak: 480,
       });
       airhorn.init();
     </script>

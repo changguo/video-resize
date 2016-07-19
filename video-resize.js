@@ -137,9 +137,9 @@ const videoResize = (function() {
     let videoNode = createElement('video');
     videoNode.style.opacity = 0;
     videoNode.setAttribute('id', video.name.substring(1));
-    videoNode.setAttribute('loop', video.loop);
+    if (video.loop) videoNode.setAttribute('loop', true);
     videoNode.setAttribute('poster', video.poster);
-    if (video.autoplay) videoNode.setAttribute('autoplay', video.autoplay);
+    if (video.autoplay) videoNode.setAttribute('autoplay', true);
     replacePlaceholderDiv(element, videoNode, video.container);
     activateVideo(video, videoNode, sources);
     return videoNode;

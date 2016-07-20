@@ -1,15 +1,26 @@
 # video-resize
 
-![video-resize.js in action](assets/video-resize.gif?raw=true)
-
 Efficiently scale HTML5 videos.
 
+![video-resize.js in action](assets/video-resize.gif?raw=true)
+
+
 ## Use
+
+Define empty div:
+
+```html
+<div id="video"></div>
+```
 
 Create a video object:
 
 ```javascript
-var video = new videoResize({element: '#video'});
+var video = new videoResize({
+  element: '#video',
+  sources: 'video.mp4',
+  poster: 'video.jpg',
+});
 ```
 
 Initialize the video:
@@ -40,35 +51,38 @@ var video = new videoResize({
   scale: 0.75
 });
 ```
-### ```align```
+### `align`
 
 Defines the position of the video within the container. `align: {x: 0.5, y: 0.5}` will result in a centered video.
 
 ##### Default: `x: 0.5, y: 0.5`
 
-### ```fit```
+### `fit`
 
-Determines how the video will resize.
-* `'cover'` video will always fill container
-* `'width'` will resize by width only
-* `'height'` will resize by height only
+Determines how the video will resize inside its parent.
+
+* `'cover'`: fill container
+* `'width'`: resize by width only
+* `'height'`: resize by height only
 
 ##### Default: `'cover'`
 
-### ```mobileBreak```
+### `mobileBreak`
 
-Determines the maximum screen width for mobile layout. When the screen width is smaller than the ```mobileBreak``` value, the video is rendered as a static ```<img>``` with the poster source.
+Determines the maximum screen width for mobile layout. When the screen width is smaller than or equal to the `mobileBreak` value, the video is instead rendered as a static `<img>` with the poster source.
 
-##### Default: 1025
+##### Default: 1024
 
-### ```scale```
+### `scale`
 
 Defines the size of the video within the container. `scale: 1.0` is 100%.
 
 ##### Default: 1.0
 
-### ```sources```
+### `sources`
 
-Can be defined as a singular source or array `['airhorn.mp4'. 'airhorn.ogg']`.
+Can be defined as a singular source `'airhorn.mp4'` or array `['airhorn.mp4'. 'airhorn.ogg']`.
 
-##### Default: 1.0
+## Other
+
+- The shorthand `vr` can be used instead of `videoResize`

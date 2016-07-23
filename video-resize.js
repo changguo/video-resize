@@ -9,13 +9,14 @@ const videoResize = (function() {
     constructor(args) {
       this.name = args.element;
       this.element = document.querySelector(args.element);
+      this.currentClass = '';
       this.container = this.element.parentElement;
       this.sources = inputDefaultVal(args.sources, false);
       this.loop = inputDefaultVal(args.loop, false);
       this.autoplay = inputDefaultVal(args.autoplay, false);
       this.muted = inputDefaultVal(args.mute, false);
       this.poster = inputDefaultVal(args.poster, false);
-      this.currentClass = '';
+      this.mobilePoster = inputDefaultVal(args.mobilePoster, false);
       this.scale = inputDefaultVal(args.scale, 1);
       this.alignment = alignmentVal(args.align);
       this.fit = inputDefaultVal(args.fit, 'cover');
@@ -134,7 +135,7 @@ const videoResize = (function() {
   }
 
   function createVideoNode(video, element, sources) {
-    let videoNode = createElement('video');
+    let videoNode = document.createElement('video');
     videoNode.style.opacity = 0;
     videoNode.setAttribute('id', video.name.substring(1));
     if (video.loop) videoNode.setAttribute('loop', true);
@@ -156,7 +157,7 @@ const videoResize = (function() {
   }
 
   function createSourceNode(element, source) {
-    let sourceNode = createElement('source');
+    let sourceNode = document.createElement('source');
     let sourceType = getFileExtension(source);
     let sourceTypeVal = sourceType === 'ogv' ? 'ogg': sourceType; // Check if .ogv, which needs type="video/ogg"
     sourceNode.setAttribute('src', source);
@@ -188,34 +189,31 @@ const videoResize = (function() {
   }
 
   function checkVideoSize(video, element, containerWidth, containerHeight, ratio, fit) {
-    if (containerWidth >= containerHeight) {
-      changeVideoSize(video, element, 'hr', containerWidth, containerHeight, ratio, fit);
-    } else {
-      changeVideoSize(video, element, 'vr', containerWidth, containerHeight, ratio, fit);
-    }
+    containerWidth >= containerHeight
+      ? changeVideoSize(video, element, 'hr', containerWidth, containerHeight, ratio, fit)
+      : changeVideoSize(video, element, 'vr', containerWidth, containerHeight, ratio, fit);
   }
 
   function changeVideoSize(video, element, prefix, containerWidth, containerHeight, ratio, fit) {
     if ((containerWidth > containerHeight && fit === 'height')
-      || (containerWidth / ratio <= containerHeight && fit === 'cover')) { //(containerWidth / ratio <= containerHeight)
+      || (containerWidth / ratio <= containerHeight && fit === 'cover')) {
       clearClass(element);
-      addClass(element, prefix + 'h');
+      element.classList.add(prefix + 'h');
       video.currentClass = prefix + 'h';
     } else {
       clearClass(element);
-      addClass(element, prefix + 'w');
+      element.classList.add(prefix + 'w');
       video.currentClass = prefix + 'w';
     }
   }
 
   function createImgNode(video, element, container) {
-    // If <source>/s exist, delete them
-    if (!video.sources) {
+    if (!video.sources) { // If <source>/s exist, delete them
       deleteVideosSources(element);
     }
-    let imageNode = createElement('img');
+    let imageNode = document.createElement('img');
     imageNode.style.opacity = 0;
-    imageNode.setAttribute('src', video.poster);
+    imageNode.setAttribute('src', video.mobilePoster !== false ? video.mobilePoster: video.poster);
     imageNode.setAttribute('id', video.name.substring(1)); // substring to remove #
     replacePlaceholderDiv(element, imageNode, video.container);
     return imageNode;
@@ -232,23 +230,15 @@ const videoResize = (function() {
   /*
     Helpers
   */
-  function addClass(el, className) {
-    return el.classList.add(className);
-  }
   function calcRatio(width, height) {
     return width / height;
   }
   function clearClass(el) {
     return el.className = "";
   }
-  function createElement(tag) {
-    return document.createElement(tag);
-  }
   function decimalToPercent(num) {
     return num * 100;
   }
-  // clientHeight/Width doesn't work if no video <source> defined (Firefox)
-  // videoWidth, videoHeight break code when no video defined
   function getVideoRatio(el) {
     return calcRatio(el.clientWidth, el.clientHeight);
   }
@@ -276,7 +266,6 @@ const vr = (function() {
   function newVideo(args) {
     return videoResize.video(args);
   }
-
   return {
     video: newVideo
   }

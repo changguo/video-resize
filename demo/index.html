@@ -6,23 +6,14 @@
     <title>video-resize</title>
     <link rel="shortcut icon" href="icon.ico">
     <style media="screen">
-      html{font-size:100%;}
-      body{width:100vw;height:100vh;overflow:hidden;margin:0;font-family:-apple-system, BlinkMacSystemFont,Helvetica,Arial,sans-serif;font-size:1.1em;line-height:1.35;}
-      h1,h2,h3,h4,h5{margin:0;}
-      h3{border:1px solid;padding:6px 7px 7px 7px;}
-      a{color:inherit;text-decoration:none;}
-      a:hover{color:#777777;}
-      ul{list-style:none;padding:0;margin:0;}
-      li{display:inline-block;margin-right:0.4em;}
-      nav,aside{position:fixed;margin:1em;z-index:1;}
-      .container{width:100vw;height:100vh;position:relative;}
+      html{font-size:100%;}body{width:100vw;height:100vh;overflow:hidden;margin:0;font-family:-apple-system, BlinkMacSystemFont,Helvetica,Arial,sans-serif;font-size:1.1em;line-height:1.35;}h3{margin:0;font-size:1.2em;}a{color:inherit;text-decoration:none;}a:hover{color:#777777;}nav{position:fixed;margin:1em;z-index:1;top:0;left:0;}.container{width:100vw;height:100vh;position:relative;}
     </style>
   </head>
   <body>
-    <nav style="top: 0; left: 0;">
-      <ul>
-        <li><h3><a href="https://github.com/robertjanes/video-min">video-resize.js</a></h3></li>
-      </ul>
+    <nav>
+      <h3>
+        <a href="https://github.com/robertjanes/video-resize">video-resize <span style="font-weight:normal;">demo</span></a>
+      </h3>
     </nav>
     <div class="container">
       <div id="airhorn"></div>
@@ -34,8 +25,10 @@
         align: {x: 0.5, y: 0.5},
         sources: 'airhorn.mp4',
         poster: 'airhorn.jpg',
+        mobilePoster: 'airhorn-mobile.jpg',
         autoplay: true,
         loop: false,
+        mute: true,
         mobileBreak: 480,
       });
       airhorn.init();

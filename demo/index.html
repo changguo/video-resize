@@ -3,11 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-    <title>video-resize</title>
-    <link rel="shortcut icon" href="icon.ico">
-    <style media="screen">
-      html{font-size:100%;}body{width:100vw;height:100vh;overflow:hidden;margin:0;font-family:-apple-system, BlinkMacSystemFont,Helvetica,Arial,sans-serif;font-size:1.1em;line-height:1.35;}h3{margin:0;font-size:1.2em;}a{color:inherit;text-decoration:none;}a:hover{color:#777777;}nav{position:fixed;margin:1em;z-index:1;top:0;left:0;}.container{width:100vw;height:100vh;position:relative;}
-    </style>
+    <title>video-resize demo</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="shortcut icon" href="assets/images/icon.ico">
   </head>
   <body>
     <nav>
@@ -23,9 +21,9 @@
       var airhorn = vr.video({
         element: '#airhorn',
         align: {x: 0.5, y: 0.5},
-        sources: 'airhorn.mp4',
-        poster: 'airhorn.jpg',
-        mobilePoster: 'airhorn-mobile.jpg',
+        sources: 'assets/videos/airhorn.mp4',
+        poster: 'assets/images/airhorn.jpg',
+        mobilePoster: 'assets/images/airhorn-mobile.jpg',
         autoplay: true,
         loop: false,
         mute: true,

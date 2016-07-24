@@ -1,10 +1,12 @@
 var gulp = require('gulp');
+var babel = require("gulp-babel");
 var uglify = require('gulp-uglify');
 var concat = require('gulp-concat');
-var babel = require("gulp-babel");
+var sass = require('gulp-ruby-sass');
 
 gulp.task('default', function() {
   gulp.watch(['video-resize.js'], ['build'])
+  gulp.watch(['demo/src/scss/main.scss'], ['sass'])
 });
 
 gulp.task('build', function() {
@@ -13,4 +15,12 @@ gulp.task('build', function() {
     .pipe(uglify())
     .pipe(concat('video-resize.min.js'))
     .pipe(gulp.dest(''))
+});
+
+gulp.task('sass', function() {
+  return sass('demo/src/scss/main.scss', {
+    style: 'compressed',
+    noCache: true
+  })
+    .pipe(gulp.dest('demo/assets/css'))
 });

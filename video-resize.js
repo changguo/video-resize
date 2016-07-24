@@ -1,3 +1,5 @@
+'use strict';
+
 const videoResize = (function() {
   class Env {
     constructor() {

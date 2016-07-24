@@ -2,7 +2,7 @@
 
 Efficiently scale HTML5 videos.
 
-![video-resize.js in action](assets/images/video-resize.gif?raw=true)
+![video-resize in action](assets/images/video-resize.gif?raw=true)
 
 
 ## Use

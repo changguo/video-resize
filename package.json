@@ -2,7 +2,13 @@
   "name": "video-resize",
   "version": "0.6.7",
   "description": "Efficiently scale HTML5 videos while providing a mobile poster fallback",
-  "keywords": ["video", "resize", "html5", "scale", "mobile"],
+  "keywords": [
+    "video",
+    "resize",
+    "html5",
+    "scale",
+    "mobile"
+  ],
   "main": "video-resize.min.js",
   "scripts": {
     "start": "gulp"
@@ -22,6 +28,7 @@
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
     "gulp-concat": "^2.6.0",
+    "gulp-ruby-sass": "^2.0.6",
     "gulp-uglify": "^1.5.3"
   }
 }

@@ -4,6 +4,11 @@ Efficiently scale HTML5 videos.
 
 ![video-resize in action](assets/images/video-resize.gif?raw=true)
 
+## Install
+
+```shell
+npm install video-resize --save
+```
 
 ## Use
 

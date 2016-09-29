@@ -11,7 +11,6 @@ const videoResize = (function() {
     constructor(args) {
       this.name = args.element;
       this.element = document.querySelector(args.element);
-      this.currentClass = '';
       this.container = this.element.parentElement;
       this.sources = inputDefaultVal(args.sources, false);
       this.loop = inputDefaultVal(args.loop, false);
@@ -30,7 +29,7 @@ const videoResize = (function() {
     }
 
     updateStyles() {
-      const styles = createStyleSheet();
+      let styles = createStyleSheet();
       createScaleCSS(styles, this.name, this.scale * 100);
       createAlignCSS(styles, this.name, this.alignment);
     }
@@ -161,15 +160,14 @@ const videoResize = (function() {
   function createSourceNode(element, source) {
     let sourceNode = document.createElement('source');
     let sourceType = getFileExtension(source);
-    let sourceTypeVal = sourceType === 'ogv' ? 'ogg': sourceType; // Check if .ogv, which needs type="video/ogg"
+    let sourceTypeVal = sourceType == 'ogv' ? 'ogg': sourceType; // Check if .ogv, which needs type="video/ogg"
     sourceNode.setAttribute('src', source);
     sourceNode.setAttribute('type', 'video/' + sourceTypeVal);
     element.appendChild(sourceNode);
   }
 
   function getFileExtension(file) {
-    let fileSplit = file.split('.');
-    return fileSplit[fileSplit.length - 1];
+    return file.substring(file.lastIndexOf('.') + 1);
   }
 
   function videoLoaded(video, element, container, fit, name) {
